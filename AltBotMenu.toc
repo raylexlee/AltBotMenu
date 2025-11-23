@@ -1,0 +1,6 @@
+## Interface: 11200
+## Title: AltBotMenu
+## Notes: Simple menu to add AI PlayerBots
+## SavedVariables: AltBotMenuDB
+AltBotMenu.lua
+

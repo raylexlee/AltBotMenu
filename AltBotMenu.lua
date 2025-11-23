@@ -80,12 +80,28 @@ local function BuildButtons()
 
     local playerFaction = UnitFactionGroup("player")
     local i = 0
+    
+    -- Add "Add All Friends" button at the top
+    local addAllFriendsBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+    addAllFriendsBtn:SetPoint("TOP", frame, "TOP", 0, -40)
+    addAllFriendsBtn:SetWidth(160)
+    addAllFriendsBtn:SetHeight(25)
+    addAllFriendsBtn:SetText("Add All Friends")
+    addAllFriendsBtn:SetScript("OnClick", function()
+        for k, v in pairs(AltBotMenuDB.alts) do
+            AddFriend(k)
+        end
+    end)
+    table.insert(frame.buttons, addAllFriendsBtn)
+    
+    i = i + 1  -- Increment counter for the Add All Friends button
+
     for name, info in pairs(AltBotMenuDB.alts) do
         -- Exclude current player and only show same faction characters
         if info.faction == playerFaction and name ~= currentPlayerName then
             i = i + 1
             local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-            btn:SetPoint("TOP", frame, "TOP", 0, -40 - (i-1)*30)  -- Adjusted to start below close button
+            btn:SetPoint("TOP", frame, "TOP", 0, -40 - (i-1)*30)
             btn:SetWidth(160)
             btn:SetHeight(25)
 

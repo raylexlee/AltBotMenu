@@ -1,5 +1,7 @@
 -- Initialize SavedVariables
-AltBotMenuDB = AltBotMenuDB or { alts = {}, botStates = {} }
+AltBotMenuDB = AltBotMenuDB or { alts = {} }
+-- Don't persist botStates between sessions, but maintain during current session
+AltBotMenuDB.botStates = AltBotMenuDB.botStates or {}
 
 -- Record/update the current character on login
 local currentPlayerName
@@ -18,6 +20,9 @@ f:SetScript("OnEvent", function()
     AltBotMenuDB.alts[name].faction = faction
     AltBotMenuDB.alts[name].class = class
     AltBotMenuDB.alts[name].level = level
+    
+    -- Reset all bot states on login since bots log out with the player
+    AltBotMenuDB.botStates = {}
 end)
 
 -- Create the frame (Vanilla style)
@@ -37,6 +42,14 @@ frame:Hide()
 frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
 frame.title:SetPoint("TOP", frame, "TOP", 0, -10)
 frame.title:SetText("Add Bot Alt")
+
+-- Close button in top right corner
+local closeBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -10, -10)
+closeBtn:SetWidth(25)
+closeBtn:SetHeight(25)
+closeBtn:SetText("X")
+closeBtn:SetScript("OnClick", function() frame:Hide() end)
 
 -- Make frame draggable + save position
 frame:SetMovable(true)
@@ -72,18 +85,17 @@ local function BuildButtons()
         if info.faction == playerFaction and name ~= currentPlayerName then
             i = i + 1
             local btn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-            btn:SetPoint("TOP", frame, "TOP", 0, -30 - (i-1)*30)
+            btn:SetPoint("TOP", frame, "TOP", 0, -40 - (i-1)*30)  -- Adjusted to start below close button
             btn:SetWidth(160)
             btn:SetHeight(25)
 
             -- Store alt name directly on the button
             btn.altName = name
             
-            -- Initialize bot state if not exists
-            if not AltBotMenuDB.botStates then
-                AltBotMenuDB.botStates = {}
+            -- Initialize bot state if not exists (default to false)
+            if AltBotMenuDB.botStates[name] == nil then
+                AltBotMenuDB.botStates[name] = false
             end
-            AltBotMenuDB.botStates[name] = AltBotMenuDB.botStates[name] or false
             
             -- Update button text based on current state
             if AltBotMenuDB.botStates[name] then
@@ -111,14 +123,9 @@ local function BuildButtons()
         end
     end
 
-    -- Close button
-    local closeBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-    closeBtn:SetPoint("BOTTOM", frame, "BOTTOM", 0, 10)
-    closeBtn:SetWidth(160)
-    closeBtn:SetHeight(25)
-    closeBtn:SetText("Close")
-    closeBtn:SetScript("OnClick", function() frame:Hide() end)
-    table.insert(frame.buttons, closeBtn)
+    -- Auto-adjust frame height based on number of buttons
+    local totalHeight = 80 + (i * 30)  -- Base height + button space
+    frame:SetHeight(math.max(160, math.min(400, totalHeight)))  -- Min 160, Max 400
 end
 
 -- Slash command to toggle
